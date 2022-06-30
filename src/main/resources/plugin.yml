@@ -1,0 +1,5 @@
+name: CustomBlockMining
+version: '${version}'
+main: io.github.fisher2911.customblockmining.CustomBlockMining
+api-version: 1.18
+authors: [ Fisher2911 ]
