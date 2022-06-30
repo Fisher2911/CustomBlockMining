@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class BlockBreakData {
 
@@ -12,15 +13,15 @@ public class BlockBreakData {
     private final int entityId;
     private final Player player;
     private ItemStack breakingWith;
-    private int totalTicks;
+    private Function<Player, Integer> totalTickFunction;
     private final Consumer<WorldPosition> onBreak;
     private int currentTicks;
 
-    public BlockBreakData(int entityId, Player player, ItemStack breakingWith, int totalTicks, Consumer<WorldPosition> onBreak) {
+    public BlockBreakData(int entityId, Player player, ItemStack breakingWith, Function<Player, Integer> totalTickFunction, Consumer<WorldPosition> onBreak) {
         this.entityId = entityId;
         this.player = player;
         this.breakingWith = breakingWith;
-        this.totalTicks = totalTicks;
+        this.totalTickFunction = totalTickFunction;
         this.onBreak = onBreak;
     }
 
@@ -29,7 +30,7 @@ public class BlockBreakData {
     }
 
     public void setTotalTicks(int totalTicks) {
-        this.totalTicks = totalTicks;
+        this.totalTickFunction = p -> totalTicks;
         this.currentTicks = 0;
     }
 
@@ -57,7 +58,7 @@ public class BlockBreakData {
     }
 
     public byte calculateDamage() {
-        final double percentage = (double) this.currentTicks / this.totalTicks;
+        final double percentage = (double) this.currentTicks / this.totalTickFunction.apply(this.player);
         final double damage = MAX_DAMAGE * percentage;
         return (byte) (Math.min(damage, MAX_DAMAGE) - 1);
     }

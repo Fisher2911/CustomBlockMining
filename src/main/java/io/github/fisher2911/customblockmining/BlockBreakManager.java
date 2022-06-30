@@ -21,17 +21,33 @@ public class BlockBreakManager implements Listener {
         this.blockBreakData = new ConcurrentHashMap<>();
     }
 
+    /**
+     *
+     * @param tickFunction - Determines the total amount of ticks, for example if a player is holding a tool or not.
+     * @param player - The player mining the block
+     * @param position - The position of the block being broken
+     * @param onBreak - Called when the block is broken, and passes the location of the block.
+     */
     public void startMining(Function<Player, Integer> tickFunction, Player player, WorldPosition position, Consumer<WorldPosition> onBreak) {
         final BlockBreakData current = this.blockBreakData.get(position);
         final int entityId = current == null ? Random.nextInt(10_000, 20_000) : current.getEntityId();
-        this.blockBreakData.put(position, new BlockBreakData(entityId, player, player.getInventory().getItemInMainHand(), tickFunction.apply(player), onBreak));
+        this.blockBreakData.put(position, new BlockBreakData(entityId, player, player.getInventory().getItemInMainHand(), tickFunction, onBreak));
     }
 
+    /**
+     *
+     * @param position resets a block at a certain position to have no cracks
+     */
     public void reset(WorldPosition position) {
         final BlockBreakData data = this.blockBreakData.get(position);
         if (data == null) return;
         data.reset(position);
     }
+
+    /**
+     *
+     * @param position makes a block no longer have a custom mining time and makes it have no cracks
+     */
 
     public void cancel(WorldPosition position) {
         final BlockBreakData data = this.blockBreakData.remove(position);
