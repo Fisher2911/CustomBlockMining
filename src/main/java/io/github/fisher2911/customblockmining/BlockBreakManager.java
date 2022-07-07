@@ -10,7 +10,6 @@
 
 package io.github.fisher2911.customblockmining;
 
-import com.destroystokyo.paper.event.server.ServerTickEndEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -20,6 +19,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import static org.bukkit.Bukkit.getScheduler;
 
 public class BlockBreakManager implements Listener {
 
@@ -65,21 +66,20 @@ public class BlockBreakManager implements Listener {
         data.reset(position);
     }
 
-    @EventHandler
-    private void onTickEnd(ServerTickEndEvent event) {
-        Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () ->
-                        this.blockBreakData.entrySet().removeIf(entry -> {
-                            final WorldPosition position = entry.getKey();
-                            final BlockBreakData data = entry.getValue();
-                            data.send(position);
-                            data.tick(position);
-                            if (data.isBroken()) {
-                                data.reset(position);
-                                data.getOnBreak().accept(position);
-                                return false;
-                            }
-                            return false;
-                        })
-        );
+    public void tickEvent() {
+        this.blockBreakData.entrySet().removeIf(entry -> {
+            final WorldPosition position = entry.getKey();
+            final BlockBreakData data = entry.getValue();
+            data.send(position);
+            data.tick(position);
+            if (data.isBroken()) {
+                data.reset(position);
+                data.getOnBreak().accept(position);
+                return false;
+            }
+            return false;
+    });
+
+        getScheduler().scheduleAsyncRepeatingTask(this.plugin, this::tickEvent, 0, 1);
     }
 }
